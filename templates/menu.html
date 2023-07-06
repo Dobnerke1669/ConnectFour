@@ -1,0 +1,50 @@
+<!-- menu.html -->
+<style>
+  body {
+    text-align: center;
+  }
+</style>
+
+<h1>Welcome to Connect Four!</h1>
+
+<p>Please choose an option:</p>
+
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" id="csrf_token" value="{{ csrf_token }}">
+    <input type="submit" name="pvp" value="Play PvP">
+    <input type="submit" name="vs_computer" value="Play against the computer">
+    <br>
+    <br>
+    <br>
+    <b>Choose difficulty: </b>
+    <select name="pvc">
+        <option value="1">Play against the computer (easy)</option>
+        <option value="2">Play against the computer (medium)</option>
+        <option value="3">Play against the computer (hard)</option>
+        <option value="4">Play against the computer (impossible)</option>
+        <option value="5">Play against the computer (impossible+)</option>
+    </select>
+</form>
+
+<script>
+    // Set flag to false when the window is closed
+    window.onbeforeunload = function () {
+        window.isWindowClosed = true;
+    };
+
+    window.addEventListener('unload', sendEndSessionRequest);
+
+    function sendEndSessionRequest() {
+        if (window.isWindowClosed) {
+            // Send HTTP request to server
+            var csrf_token = document.getElementById('csrf_token').value;
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/end_session", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.setRequestHeader("X-CSRFToken", csrf_token);  // Set CSRF token
+            xhr.send();
+            return null;
+        }
+    }
+</script>

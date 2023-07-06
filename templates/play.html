@@ -1,0 +1,98 @@
+<!-- play.html -->
+<style>
+    body {
+        text-align: center;
+    }
+</style>
+
+{% load static %}
+
+<style>
+
+    table {
+        margin: 0 auto;
+        border-collapse: collapse;
+    }
+
+    td {
+        width: 50px;
+        height: 50px;
+        border: 1px solid #ccc;
+        text-align: center;
+    }
+</style>
+
+{% if game.game_over %}
+    <h1>Game over!</h1>
+    <h1>Winner: {% if game.winner == 'R' %}Red{% else %}Yellow{% endif %}</h1>
+{% else %}
+    <p>Current player: {% if player == 'R' %}Red{% else %}Yellow{% endif %}</p>
+{% endif %}
+
+<form method="post" id="form">
+    {% csrf_token %}
+    <table>
+        {% for row in game.board %}
+            <tr>
+                {% for coin in row %}
+                    {% if coin == 'R' %}
+                        <td><img src="{% static 'red.png' %}" width="30" height="30" onclick="selectColumn(this)"></td>
+                    {% elif coin == 'Y' %}
+                        <td><img src="{% static 'yellow.png' %}" width="30" height="30" onclick="selectColumn(this)">
+                        </td>
+                    {% else %}
+                        <td><img src="{% static 'empty.png' %}" width="30" height="30" onclick="selectColumn(this)">
+                        </td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+</form>
+`
+
+<!-- button for leaving game -->
+<form action="{% url 'menu' %}" method="post">
+    {% csrf_token %}
+    <input type="hidden" id="csrf_token" value="{{ csrf_token }}">
+    <input type="submit" value="Leave Game">
+</form>
+
+
+<script>
+    function selectColumn(coin) {
+        var column = coin.parentNode.cellIndex;
+        console.log(column);
+        var form = document.getElementById("form");
+        var columnInput = document.createElement("input");
+        columnInput.type = "hidden";
+        columnInput.name = "column";
+        columnInput.value = column;
+        form.appendChild(columnInput);
+        {% if game.winner != 'R' and game.winner != 'Y' %}
+            form.submit();
+        {% endif %}
+    }
+</script>
+
+<script>
+    // Set flag to false when the window is closed
+    window.onbeforeunload = function () {
+        window.isWindowClosed = true;
+    };
+
+    window.addEventListener('unload', sendEndSessionRequest);
+
+    function sendEndSessionRequest() {
+        if (window.isWindowClosed) {
+            // Send HTTP request to server
+            var csrf_token = document.getElementById('csrf_token').value;
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/end_session", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.setRequestHeader("X-CSRFToken", csrf_token);  // Set CSRF token
+            xhr.send();
+            return null;
+        }
+    }
+</script>
